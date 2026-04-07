@@ -3,3 +3,4 @@ epitar
 __pycache__/
 doxygen/
 Doxyfile
+tests/test_utils
