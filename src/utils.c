@@ -186,6 +186,7 @@ int extract_file(struct tar_header *header, FILE *file, char *archive)
         if (fread(block, 1, BLOCK_SIZE, file) != BLOCK_SIZE)
         {
             fclose(os);
+            fprintf(stderr, "epitar: error extracting tarball %s\n", archive);
             return 3;
         }
 
