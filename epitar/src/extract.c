@@ -8,8 +8,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "extract_utils.h"
 #include "header.h"
-#include "utils.h"
+#include "tar_utils.h"
 
 int extract_archive(char *archive, int verbose)
 {
@@ -54,11 +55,10 @@ int extract_archive(char *archive, int verbose)
         }
         else if (header.typeflag == REGTYPE || header.typeflag == '\0')
         {
-            int ret = extract_file(&header, file, archive);
-            if (ret != 0)
+            if (extract_file(&header, file, archive) != 0)
             {
                 fclose(file);
-                return ret;
+                return 3;
             }
         }
     }

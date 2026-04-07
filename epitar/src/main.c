@@ -1,7 +1,8 @@
 #include <stdio.h>
 
+#include "archive.h"
 #include "extract.h"
-#include "utils.h"
+#include "parse_opts.h"
 
 /**
  * @brief Print usage help
@@ -49,6 +50,6 @@ int main(int argc, char *argv[])
     {
         return extract_archive(opts.name, opts.verbose);
     }
-
-    return 1;
+    return create_archive(opts.name, argv + opts.start_idx, opts.count,
+                          opts.verbose);
 }

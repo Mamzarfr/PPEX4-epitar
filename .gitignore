@@ -1,5 +1,5 @@
 .pytest_cache/
-epitar
+epitar/epitar
 __pycache__/
 doxygen/
 Doxyfile
