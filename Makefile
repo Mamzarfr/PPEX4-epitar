@@ -11,10 +11,14 @@ epitar: $(SRC)
 check:
 	pytest -v tests/
 
+unit: src/utils.c tests/test_utils.c
+	$(CC) $(CFLAGS) -o tests/test_utils $^ -lcriterion
+	./tests/test_utils
+
 leak: CFLAGS+=-g -fsanitize=address
-leak: clean epitar check
+leak: clean epitar check unit
 
 clean:
-	$(RM) epitar
+	$(RM) epitar tests/test_utils
 
-.PHONY: all check leak clean
+.PHONY: all check unit leak clean
