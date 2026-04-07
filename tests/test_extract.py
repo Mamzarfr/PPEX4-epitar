@@ -96,8 +96,13 @@ def test_verbose(tmp_path, create_files):
     tar_path = tmp_path / "songs.tar"
     tar(["--format=ustar", "-cf", tar_path, "-b", "1", "songs"], tmp_path)
 
-    res = epitar(["-xv", tar_path])
-    ref = tar(["-xvf", tar_path])
+    out = tmp_path / "out"
+    out.mkdir()
+    ref_dir = tmp_path / "ref"
+    ref_dir.mkdir()
+
+    res = epitar(["-xv", tar_path], out)
+    ref = tar(["-xvf", tar_path], ref_dir)
 
     assert res.returncode == 0
     assert res.stdout == ref.stdout
@@ -106,10 +111,19 @@ def test_valid_flags(tmp_path, create_files):
     tar_path = str(tmp_path / "songs.tar")
     tar(["--format=ustar", "-cf", tar_path, "-b", "1", "songs"], tmp_path)
 
-    r = epitar(["-v", "-x", tar_path])
-    r2 = epitar(["-x", "-v", tar_path])
-    r3 = epitar(["-vx", tar_path])
-    r4 = epitar(["-xv", tar_path])
+    out = tmp_path / "out"
+    out2 = tmp_path / "out2"
+    out3 = tmp_path / "out3"
+    out4 = tmp_path / "out4"
+    out.mkdir()
+    out2.mkdir()
+    out3.mkdir()
+    out4.mkdir()
+
+    r = epitar(["-v", "-x", tar_path], out)
+    r2 = epitar(["-x", "-v", tar_path], out2)
+    r3 = epitar(["-vx", tar_path], out3)
+    r4 = epitar(["-xv", tar_path], out4)
     assert r.returncode == 0
     assert r2.returncode == 0
     assert r3.returncode == 0
