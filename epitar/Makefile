@@ -10,13 +10,13 @@ UNIT_OBJ=tests/test_utils.o src/parse_opts.o src/tar_utils.o src/extract_utils.o
 all: epitar
 
 epitar: $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^
 
 check:
 	pytest -v tests/
 
 tests/test_utils: $(UNIT_OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ -lcriterion
+	$(CC) $(LDFLAGS) -o $@ $^ -lcriterion
 
 unit: tests/test_utils
 	./tests/test_utils

@@ -1,10 +1,10 @@
 #include <criterion/criterion.h>
 #include <string.h>
 
+#include "../src/extract_utils.h"
 #include "../src/header.h"
 #include "../src/parse_opts.h"
 #include "../src/tar_utils.h"
-#include "../src/extract_utils.h"
 
 TestSuite(utils, .timeout = 5.0);
 
