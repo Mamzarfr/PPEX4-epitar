@@ -3,6 +3,7 @@
 #include "extract.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -12,10 +13,13 @@
 
 int extract_archive(char *archive, int verbose)
 {
+    char *base = strrchr(archive, '/');
+    base = base ? base + 1 : archive;
+
     FILE *file = fopen(archive, "rb");
     if (file == NULL)
     {
-        fprintf(stderr, "epitar: error extracting tarball %s\n", archive);
+        fprintf(stderr, "epitar: error extracting tarball %s\n", base);
         return 3;
     }
 
@@ -33,7 +37,7 @@ int extract_archive(char *archive, int verbose)
             continue;
         }
 
-        int err = check_header(&header, archive);
+        int err = check_header(&header, base);
         if (err != 0)
         {
             fclose(file);
@@ -53,7 +57,7 @@ int extract_archive(char *archive, int verbose)
         }
         else if (header.typeflag == REGTYPE || header.typeflag == '\0')
         {
-            if (extract_file(&header, file, archive) != 0)
+            if (extract_file(&header, file, base) != 0)
             {
                 fclose(file);
                 return 3;

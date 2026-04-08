@@ -29,16 +29,16 @@ void create_dirs(char *path)
 
 int check_header(struct tar_header *header, char *archive)
 {
-    if (strncmp(header->magic, "ustar", 5) != 0)
-    {
-        fprintf(stderr, "epitar: error extracting tarball %s\n", archive);
-        return 3;
-    }
-
     if (oct_to_ul(header->chksum, 8) != check_sum(header))
     {
         fprintf(stderr, "epitar: bad checksum\n");
         return 2;
+    }
+
+    if (strncmp(header->magic, "ustar", 5) != 0)
+    {
+        fprintf(stderr, "epitar: error extracting tarball %s\n", archive);
+        return 3;
     }
     return 0;
 }

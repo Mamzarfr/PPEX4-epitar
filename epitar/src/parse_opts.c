@@ -4,6 +4,7 @@
 
 static int set_opts(char *arg, struct opts *opts)
 {
+    int err = 0;
     for (int i = 1; arg[i] != '\0'; i++)
     {
         switch (arg[i])
@@ -21,10 +22,10 @@ static int set_opts(char *arg, struct opts *opts)
             opts->help = 1;
             break;
         default:
-            return 1;
+            err = 1;
         }
     }
-    return 0;
+    return err;
 }
 
 int parse_opts(int argc, char *argv[], struct opts *opts)
@@ -35,7 +36,7 @@ int parse_opts(int argc, char *argv[], struct opts *opts)
     {
         if (opts->name == NULL && argv[i][0] == '-' && argv[i][1] != '\0')
         {
-            err = set_opts(argv[i], opts);
+            err |= set_opts(argv[i], opts);
         }
         else if (opts->name == NULL)
         {

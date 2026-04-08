@@ -4,6 +4,14 @@ import pytest
 
 EXE = os.path.join(os.path.dirname(__file__), "..", "epitar")
 
+FILES = [
+    "songs/Test - song1",
+    "songs/Non - test2",
+    "songs/Test3 - oui",
+    "songs/TestDir/Test4 - t4",
+    "songs/TestDir/NestedDir/Test5 - t5",
+]
+
 @pytest.fixture
 def create_files(tmp_path):
     d = tmp_path / "songs"

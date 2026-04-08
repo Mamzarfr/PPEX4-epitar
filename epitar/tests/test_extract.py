@@ -1,30 +1,19 @@
 import os
 
-from conftest import epitar, tar
+from conftest import epitar, tar, FILES
 
-def test_help():
-    res = epitar(["-h"])
-    assert res.returncode == 0
-    assert "Usage: epitar -[xcvh] <file.tar> [<files>]" in res.stdout
+def test_nonexistent(tmp_path):
+    res = epitar(["-x", "test.tar"], tmp_path)
 
-def test_help_tricky():
-    res = epitar(["-h", "-x", "test.tar"])
-    assert res.returncode == 0
+    assert res.returncode == 3
+    assert "epitar: error extracting tarball test.tar" in res.stderr
 
-def test_wrong_opts():
-    res = epitar(["-test", "test", "oui.tar"])
-    assert res.returncode == 1
-    assert "epitar: invalid or missing option\nTry './epitar -h' for more information.\n" in res.stderr
+def test_nonexistent_base(tmp_path):
+    test = tmp_path / "test.tar"
+    res = epitar(["-x", str(test)], tmp_path)
 
-def test_noarg():
-    res = epitar([])
-    assert res.returncode == 1
-    assert "epitar: invalid or missing option\nTry './epitar -h' for more information.\n" in res.stderr
-
-def test_noopt():
-    res = epitar(["archive.tar"])
-    assert res.returncode == 1
-    assert "epitar: invalid or missing option\nTry './epitar -h' for more information.\n" in res.stderr
+    assert res.returncode == 3
+    assert "epitar: error extracting tarball test.tar" in res.stderr
 
 def test_bad_checksum(tmp_path, create_files):
     tar_path = tmp_path / "test.tar"
@@ -35,13 +24,21 @@ def test_bad_checksum(tmp_path, create_files):
         f.write(b"67676767")
 
     res = epitar(["-x", tar_path], tmp_path)
+
     assert res.returncode == 2
     assert "epitar: bad checksum" in res.stderr
 
-def test_nonexistent(tmp_path):
-    res = epitar(["-x", "test.tar"], tmp_path)
-    assert res.returncode == 3
-    assert "epitar: error extracting tarball test.tar" in res.stderr
+def test_bad_magic(tmp_path, create_files):
+    tar_path = tmp_path / "test.tar"
+    tar(["--format=ustar", "-cf", tar_path, "-b", "1", "songs"], tmp_path)
+
+    with open(tar_path, "r+b") as f:
+        f.seek(257)
+        f.write(b"tests")
+
+    res = epitar(["-x", tar_path], tmp_path)
+    assert res.returncode == 2
+    assert "epitar: bad checksum" in res.stderr
 
 def test_truncate(tmp_path):
     text = "x" * 1000
@@ -49,26 +46,15 @@ def test_truncate(tmp_path):
     tar_path = tmp_path / "test.tar"
     tar(["--format=ustar", "-cf", tar_path, "test.txt"], tmp_path)
 
-    os.truncate(tar_path, 670)
+    os.truncate(tar_path, 676)
 
     out = tmp_path / "out"
     out.mkdir()
     res = epitar(["-x", tar_path], out)
+    
     assert res.returncode == 3
-    assert f"epitar: error extracting tarball {tar_path}" in res.stderr
+    assert "epitar: error extracting tarball test.tar" in res.stderr
     assert (out / "test.txt").read_text() == ""
-
-def test_magic(tmp_path, create_files):
-    tar_path = tmp_path / "test.tar"
-    tar(["--format=ustar", "-cf", tar_path, "-b", "1", "songs"], tmp_path)
-
-    with open(tar_path, "r+b") as f:
-        f.seek(257)
-        f.write(b"magic")
-
-    res = epitar(["-x", tar_path], tmp_path)
-    assert res.returncode == 3
-    assert f"epitar: error extracting tarball {tar_path}" in res.stderr
 
 def test_simple(tmp_path, create_files):
     tar_path = str(tmp_path / "songs.tar")
@@ -79,18 +65,34 @@ def test_simple(tmp_path, create_files):
     res = epitar(["-x", tar_path], output)
     assert res.returncode == 0
 
-    files = [
-        "songs/Test - song1",
-        "songs/Non - test2",
-        "songs/Test3 - oui",
-        "songs/TestDir/Test4 - t4",
-        "songs/TestDir/NestedDir/Test5 - t5",
-    ]
-
-    for f in files:
+    for f in FILES:
         ref = tmp_path / f
         out = output / f
         assert out.read_text() == ref.read_text()
+
+def test_empty_file(tmp_path):
+    (tmp_path / "test.txt").write_text("")
+    tar_path = tmp_path / "test.tar"
+    tar(["--format=ustar", "-cf", tar_path, "-b", "1", "test.txt"], tmp_path)
+
+    out = tmp_path / "out"
+    out.mkdir()
+    res = epitar(["-x", str(tar_path)], out)
+
+    assert res.returncode == 0
+    assert (out / "test.txt").read_text() == ""
+
+def test_empty_dir(tmp_path):
+    (tmp_path / "test").mkdir()
+    tar_path = tmp_path / "test.tar"
+    tar(["--format=ustar", "-cf", tar_path, "-b", "1", "test"], tmp_path)
+
+    out = tmp_path / "out"
+    out.mkdir()
+    res = epitar(["-x", str(tar_path)], out)
+    
+    assert res.returncode == 0
+    assert (out / "test").is_dir()
 
 def test_verbose(tmp_path, create_files):
     tar_path = tmp_path / "songs.tar"

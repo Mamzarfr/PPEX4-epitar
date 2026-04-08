@@ -44,10 +44,13 @@ static void fill_header(struct tar_header *header, char *path,
     }
 
     ul_to_oct(header->size, sizeof(header->size), size);
+    ul_to_oct(header->mode, sizeof(header->mode), stat->st_mode & 0777);
+    ul_to_oct(header->mtime, sizeof(header->mtime), stat->st_mtime);
 
     header->typeflag = typeflag;
 
     memcpy(header->magic, "ustar", 6);
+    memcpy(header->version, "00", 2);
 
     ul_to_oct(header->chksum, sizeof(header->chksum) - 1, check_sum(header));
     header->chksum[7] = ' ';
